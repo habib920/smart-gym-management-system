@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0f14">
+  <meta name="description" content="Smart Gym fitness management dashboard for members, trainers, memberships, attendance, payments, workout plans and progress.">
+  <title>Smart Gym | Fitness Management Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to main content</a>
+
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar" aria-label="Main sidebar">
+    <a class="brand" href="#dashboard">
+      <span class="brand-mark" aria-hidden="true">▥</span>
+      <span><strong>Smart <em>Gym</em></strong><small>Train · Track · Achieve</small></span>
+    </a>
+
+    <nav class="primary-nav" aria-label="Main navigation">
+      <a class="nav-link is-active" aria-current="page" href="#dashboard">▦ <span>Dashboard</span></a>
+      <a class="nav-link" href="#members">♙ <span>Members</span></a>
+      <a class="nav-link" href="#memberships">▣ <span>Memberships</span></a>
+      <a class="nav-link" href="#trainers">♧ <span>Trainers</span></a>
+      <a class="nav-link" href="#attendance">☑ <span>Attendance / QR</span></a>
+      <a class="nav-link" href="#payments">▤ <span>Payments</span></a>
+      <a class="nav-link" href="#workouts">☷ <span>Workout Plans</span></a>
+      <a class="nav-link" href="#classes">◷ <span>Classes & Bookings</span></a>
+      <a class="nav-link" href="#progress">▱ <span>Progress & Goals</span></a>
+      <a class="nav-link" href="#equipment">⚙ <span>Equipment</span></a>
+      <a class="nav-link" href="#reports">▧ <span>Reports</span></a>
+      <a class="nav-link" href="#settings">☷ <span>Settings / Roles</span></a>
+    </nav>
+
+    <section class="upgrade-card">
+      <h2>♛ Your gym, organized</h2>
+      <p>Manage the daily work from one dashboard.</p>
+      <a class="button button-primary button-full" href="#reports">View Reports →</a>
+    </section>
+
+    <button class="logout-link" id="logout-button" type="button">⇥ <span>Log Out</span></button>
+  </aside>
+
+  <button class="backdrop" id="backdrop" aria-label="Close navigation" hidden></button>
+
+  <div class="main-column">
+    <header class="topbar">
+      <button class="icon-button menu-toggle" id="menu-toggle" type="button"
+        aria-label="Open navigation menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+
+      <form class="search-form" id="search-form" role="search">
+        <label class="sr-only" for="global-search">Search gym records</label>
+        <span aria-hidden="true">⌕</span>
+        <input id="global-search" type="search"
+          placeholder="Search members, trainers, plans…" autocomplete="off">
+        <button class="sr-only" type="submit">Search</button>
+      </form>
+
+      <div class="topbar-actions">
+        <button class="icon-button" id="notification-button" type="button" aria-label="Show notifications">
+          ♧<span class="notification-dot"></span>
+        </button>
+        <button class="profile-button" id="profile-button" type="button" aria-expanded="false">
+          <span class="avatar" aria-hidden="true">A</span>
+          <span><strong>Admin</strong><small>Gym Manager</small></span>⌄
+        </button>
+      </div>
+    </header>
+
+    <main id="main-content" class="dashboard">
+
+      <!-- Dashboard hero with gym image -->
+      <section id="dashboard" class="hero-grid">
+        <section class="welcome-panel panel" aria-labelledby="welcome-title">
+          <div class="welcome-copy">
+            <p class="eyebrow" id="today-date"></p>
+            <p class="welcome-label">Welcome back, Admin</p>
+            <h1 id="welcome-title">Ready to build a <span>stronger you</span> today?</h1>
+            <p class="muted">Manage your members, track progress, and keep your gym running smoothly.</p>
+            <a class="button button-primary" href="#members">View Members →</a>
+          </div>
+          <div class="hero-image" role="img"
+            aria-label="Athlete training with dumbbells in a dramatic orange-lit gym"></div>
+        </section>
+
+        <section class="panel activity-panel">
+          <div class="section-heading">
+            <h2>Member Activity</h2>
+            <label class="select-wrap">
+              <span class="sr-only">Activity period</span>
+              <select id="activity-period">
+                <option value="7">Last 7 Days</option>
+                <option value="30">Last 30 Days</option>
+                <option value="90">Last 90 Days</option>
+              </select>
+            </label>
+          </div>
+          <div class="activity-content">
+            <div class="donut donut-small" id="activity-donut" role="img" aria-label="Membership distribution">
+              <div class="donut-center"><strong id="donut-total">0</strong><span>Total Members</span></div>
+            </div>
+            <ul class="legend-list" id="activity-legend"></ul>
+          </div>
+          <ul class="time-list" id="time-list" aria-label="Attendance by time"></ul>
+        </section>
+      </section>
+
+      <!-- Summary statistics -->
+      <section class="stats-grid" aria-label="Gym summary statistics">
+        <article class="stat-card panel">
+          <span class="stat-icon">♟</span>
+          <div><p>Total Members</p><strong id="total-members">0</strong><small class="muted">Registered members</small></div>
+        </article>
+        <article class="stat-card panel">
+          <span class="stat-icon">▤</span>
+          <div><p>Active Memberships</p><strong id="active-members">0</strong><small class="muted">Currently active</small></div>
+        </article>
+        <article class="stat-card panel">
+          <span class="stat-icon">▦</span>
+          <div><p>Today's Attendance</p><strong id="attendance-total">0</strong><small class="muted">Check-ins today</small></div>
+        </article>
+        <article class="stat-card panel">
+          <span class="stat-icon">♙</span>
+          <div><p>Available Trainers</p><strong id="trainer-total">0</strong><small class="muted">Active trainers</small></div>
+        </article>
+      </section>
+
+      <!-- Analytics -->
+      <div class="analytics-grid">
+        <section class="panel chart-panel" aria-labelledby="attendance-chart-title">
+          <div class="section-heading">
+            <div><h2 id="attendance-chart-title">Weekly Attendance</h2><p class="muted">Visits recorded per day</p></div>
+            <span class="pill">Live data</span>
+          </div>
+          <div class="bar-chart" id="attendance-chart" role="img" aria-label="Weekly attendance chart"></div>
+        </section>
+
+        <section class="panel membership-panel" id="memberships">
+          <div class="section-heading">
+            <div><h2>Membership Status</h2><p class="muted">Current membership breakdown</p></div>
+          </div>
+          <div class="membership-content">
+            <div class="donut" id="membership-donut" role="img" aria-label="Membership status">
+              <div class="donut-center"><strong id="member-donut-total">0</strong><span>Total Members</span></div>
+            </div>
+            <ul class="legend-list" id="membership-legend"></ul>
+          </div>
+          <p class="muted small">Status is calculated from each member's expiry date.</p>
+        </section>
+      </div>
+
+      <!-- Members -->
+      <section class="panel section-panel" id="members">
+        <div class="section-heading">
+          <div><h2>Members & Memberships</h2><p class="muted">Create, search, edit, check in and manage member records.</p></div>
+          <button class="button button-primary" data-scroll-form="member-form">+ Add Member</button>
+        </div>
+
+        <form id="member-form" class="data-form">
+          <input type="hidden" id="member-id">
+          <label>Full name<input id="member-name" required maxlength="80" autocomplete="name" placeholder="Full name"></label>
+          <label>Phone<input id="member-phone" type="tel" required maxlength="25" autocomplete="tel" placeholder="Phone number"></label>
+          <label>Membership plan<select id="member-plan"><option>Basic</option><option>Standard</option><option>Premium</option></select></label>
+          <label>Start date<input id="member-start" type="date" required></label>
+          <label>Expiry date<input id="member-expiry" type="date" required></label>
+          <div class="form-actions">
+            <button class="button button-primary" type="submit" id="member-submit">Save Member</button>
+            <button class="button button-quiet" type="button" id="member-cancel" hidden>Cancel edit</button>
+          </div>
+        </form>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Member</th><th>Plan</th><th>Expiry</th><th>Status</th><th>Attendance</th><th>Actions</th></tr></thead>
+            <tbody id="member-table"></tbody>
+          </table>
+        </div>
+        <p class="empty-state" id="members-empty">No members yet. Add your first member above.</p>
+      </section>
+
+      <!-- Trainers -->
+      <section class="panel section-panel" id="trainers">
+        <div class="section-heading"><div><h2>Trainer Management</h2><p class="muted">Manage trainer profiles, specialties and availability.</p></div></div>
+        <form id="trainer-form" class="data-form">
+          <label>Trainer name<input id="trainer-name" required maxlength="80" placeholder="Full name"></label>
+          <label>Specialty<input id="trainer-specialty" required maxlength="80" placeholder="Strength, yoga…"></label>
+          <label>Phone<input id="trainer-phone" type="tel" maxlength="25" placeholder="Phone number"></label>
+          <label>Availability<select id="trainer-availability"><option>Available</option><option>Busy</option><option>Off duty</option></select></label>
+          <div class="form-actions"><button class="button button-primary" type="submit">Add Trainer</button></div>
+        </form>
+        <div class="card-grid" id="trainer-list"></div>
+        <p class="empty-state" id="trainers-empty">No trainers added yet.</p>
+      </section>
+
+      <!-- Attendance -->
+      <section class="panel section-panel" id="attendance">
+        <div class="section-heading"><div><h2>Attendance & QR Check-in</h2><p class="muted">Record member check-ins manually or by QR scan.</p></div></div>
+        <form id="checkin-form" class="data-form">
+          <label>Member<select id="checkin-member" required><option value="">Choose a member</option></select></label>
+          <label>Check-in method<select id="checkin-method"><option>Manual check-in</option><option>QR scan</option></select></label>
+          <div class="form-actions"><button class="button button-primary" type="submit">Record Check-in</button></div>
+        </form>
+        <div class="table-wrap">
+          <table><thead><tr><th>Date & time</th><th>Member</th><th>Method</th><th>Status</th></tr></thead><tbody id="attendance-table"></tbody></table>
+        </div>
+        <p class="empty-state" id="attendance-empty">No attendance records yet.</p>
+      </section>
+
+      <!-- Payments -->
+      <section class="panel section-panel" id="payments">
+        <div class="section-heading"><div><h2>Payments</h2><p class="muted">Track member payments and totals.</p></div></div>
+        <form id="payment-form" class="data-form">
+          <label>Member<select id="payment-member" required><option value="">Choose a member</option></select></label>
+          <label>Amount<input id="payment-amount" type="number" min="0.01" step="0.01" required placeholder="Amount"></label>
+          <label>Payment method<select id="payment-method"><option>Cash</option><option>Bank transfer</option><option>Mobile money</option><option>Card</option></select></label>
+          <label>Payment for<input id="payment-purpose" required maxlength="80" value="Membership fee"></label>
+          <div class="form-actions"><button class="button button-primary" type="submit">Record Payment</button></div>
+        </form>
+        <p class="summary-line">Total recorded payments: <strong id="payment-total">0.00</strong></p>
+        <div class="table-wrap">
+          <table><thead><tr><th>Date</th><th>Member</th><th>Purpose</th><th>Method</th><th>Amount</th></tr></thead><tbody id="payment-table"></tbody></table>
+        </div>
+        <p class="empty-state" id="payments-empty">No payments recorded yet.</p>
+      </section>
+
+      <!-- Workout plans -->
+      <section class="panel section-panel" id="workouts">
+        <div class="section-heading"><div><h2>Workout Plans</h2><p class="muted">Create plans and assign them to members.</p></div></div>
+        <form id="workout-form" class="data-form">
+          <label>Plan name<input id="workout-name" required maxlength="80" placeholder="Beginner strength"></label>
+          <label>Member<select id="workout-member" required><option value="">Choose a member</option></select></label>
+          <label>Goal<input id="workout-goal" required maxlength="120" placeholder="Build strength"></label>
+          <label>Schedule<input id="workout-schedule" required maxlength="120" placeholder="Mon / Wed / Fri"></label>
+          <div class="form-actions"><button class="button button-primary" type="submit">Create Plan</button></div>
+        </form>
+        <div class="card-grid" id="workout-list"></div>
+        <p class="empty-state" id="workouts-empty">No workout plans yet.</p>
+      </section>
+
+      <!-- Classes and bookings -->
+      <section class="panel section-panel" id="classes">
+        <div class="section-heading"><div><h2>Classes & Bookings</h2><p class="muted">Create classes and register member bookings.</p></div></div>
+        <form id="class-form" class="data-form">
+          <label>Class name<input id="class-name" required maxlength="80" placeholder="Yoga, HIIT…"></label>
+          <label>Trainer<select id="class-trainer"><option value="">No trainer assigned</option></select></label>
+          <label>Date<input id="class-date" type="date" required></label>
+          <label>Capacity<input id="class-capacity" type="number" min="1" max="500" value="12" required></label>
+          <div class="form-actions"><button class="button button-primary" type="submit">Create Class</button></div>
+        </form>
+        <div class="card-grid" id="class-list"></div>
+        <p class="empty-state" id="classes-empty">No classes scheduled yet.</p>
+
+        <form id="booking-form" class="data-form compact-form">
+          <label>Member<select id="booking-member" required><option value="">Choose a member</option></select></label>
+          <label>Class<select id="booking-class" required><option value="">Choose a class</option></select></label>
+          <div class="form-actions"><button class="button button-secondary" type="submit">Book Class</button></div>
+        </form>
+        <div class="table-wrap">
+          <table><thead><tr><th>Member</th><th>Class</th><th>Date</th><th>Booking status</th></tr></thead><tbody id="booking-table"></tbody></table>
+        </div>
+        <p class="empty-state" id="bookings-empty">No bookings yet.</p>
+      </section>
+
+      <!-- Progress -->
+      <section class="panel section-panel" id="progress">
+        <div class="section-heading"><div><h2>Progress & Fitness Goals</h2><p class="muted">Record member measurements and track a goal over time.</p></div></div>
+        <form id="progress-form" class="data-form">
+          <label>Member<select id="progress-member" required><option value="">Choose a member</option></select></label>
+          <label>Weight (kg)<input id="progress-weight" type="number" min="1" max="500" step="0.1" required></label>
+          <label>Goal<input id="progress-goal" required maxlength="120" placeholder="Reach 70 kg"></label>
+          <label>Target date<input id="progress-target" type="date" required></label>
+          <div class="form-actions"><button class="button button-primary" type="submit">Save Progress</button></div>
+        </form>
+        <div class="table-wrap">
+          <table><thead><tr><th>Member</th><th>Weight</th><th>Fitness goal</th><th>Target date</th><th>Recorded</th></tr></thead><tbody id="progress-table"></tbody></table>
+        </div>
+        <p class="empty-state" id="progress-empty">No progress entries yet.</p>
+      </section>
+
+      <!-- Equipment -->
+      <section class="panel section-panel" id="equipment">
+        <div class="section-heading"><div><h2>Equipment & Maintenance</h2><p class="muted">Log equipment and update maintenance status.</p></div></div>
+        <form id="equipment-form" class="data-form">
+          <label>Equipment name<input id="equipment-name" required maxlength="80" placeholder="Treadmill #1"></label>
+          <label>Condition<select id="equipment-condition"><option>Good</option><option>Needs maintenance</option><option>Out of service</option></select></label>
+          <label>Notes<input id="equipment-notes" maxlength="160" placeholder="Maintenance details"></label>
+          <div class="form-actions"><button class="button button-primary" type="submit">Add Equipment</button></div>
+        </form>
+        <div class="card-grid" id="equipment-list"></div>
+        <p class="empty-state" id="equipment-empty">No equipment records yet.</p>
+      </section>
+
+      <!-- Reports -->
+      <section class="panel section-panel" id="reports">
+        <div class="section-heading">
+          <div><h2>Reports & Data Export</h2><p class="muted">Export current records as a CSV file for reporting.</p></div>
+          <button class="button button-primary" id="export-csv" type="button">Export Members CSV</button>
+        </div>
+        <div class="report-grid">
+          <article class="report-tile"><span>Total members</span><strong id="report-members">0</strong></article>
+          <article class="report-tile"><span>Recorded payments</span><strong id="report-payments">0</strong></article>
+          <article class="report-tile"><span>Attendance entries</span><strong id="report-attendance">0</strong></article>
+          <article class="report-tile"><span>Workout plans</span><strong id="report-workouts">0</strong></article>
+        </div>
+      </section>
+
+      <!-- Settings -->
+      <section class="panel section-panel" id="settings">
+        <div class="section-heading"><div><h2>Settings & Roles</h2><p class="muted">Choose the role and gym name shown in the dashboard.</p></div></div>
+        <form id="settings-form" class="data-form">
+          <label>Current role<select id="user-role"><option>Gym Manager</option><option>Reception Staff</option><option>Trainer</option><option>Member</option></select></label>
+          <label>Gym name<input id="gym-name" maxlength="80" value="Smart Gym"></label>
+          <div class="form-actions">
+            <button class="button button-primary" type="submit">Save Preferences</button>
+            <button class="button button-quiet" type="button" id="reset-demo">Reset all data</button>
+          </div>
+        </form>
+      </section>
+
+      <footer class="footer">
+        <span>Smart Gym · Fitness Management System</span>
+      </footer>
+    </main>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
