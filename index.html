@@ -6,19 +6,90 @@
   <meta name="theme-color" content="#0b0f14">
   <meta name="description" content="Smart Gym fitness management dashboard for members, trainers, memberships, attendance, payments, workout plans and progress.">
   <title>Smart Gym | Fitness Management Dashboard</title>
+  <script>try{var t=localStorage.getItem("smartGymTheme")||(matchMedia("(prefers-color-scheme: light)").matches?"light":"dark");document.documentElement.dataset.theme=t;document.documentElement.dataset.auth=(sessionStorage.getItem("smartGymSession")||localStorage.getItem("smartGymSession"))?"in":"out"}catch(e){document.documentElement.dataset.theme="dark";document.documentElement.dataset.auth="out"}</script>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="auth.css">
   <script src="script.js" defer></script>
+  <script src="auth.js" defer></script>
 </head>
 <body>
 <a class="skip-link" href="#main-content">Skip to main content</a>
 
+<!-- Login screen (shown until the user signs in) -->
+<section class="auth-screen" id="auth-screen" aria-labelledby="auth-title">
+  <div class="auth-panel">
+    <div class="auth-card">
+      <div class="auth-brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6.5 6.5v11" /><path d="M17.5 6.5v11" /><path d="M3.5 9v6" /><path d="M20.5 9v6" /><path d="M6.5 12h11" />
+          </svg>
+        </span>
+        <strong>Smart <em>Gym</em></strong>
+      </div>
+
+      <h1 id="auth-title">Sign in</h1>
+      <p class="muted">Welcome back. Sign in to manage your gym.</p>
+
+      <form class="auth-form" id="login-form" novalidate>
+        <div class="field">
+          <label for="login-email">Email</label>
+          <input id="login-email" type="email" autocomplete="username" inputmode="email" placeholder="you@smartgym.com" required>
+        </div>
+        <div class="field">
+          <label for="login-password">Password</label>
+          <div class="password-field">
+            <input id="login-password" type="password" autocomplete="current-password" placeholder="Your password" required>
+            <button class="password-toggle" id="toggle-password" type="button" aria-label="Show password" aria-pressed="false">Show</button>
+          </div>
+        </div>
+        <label class="auth-check"><input id="login-remember" type="checkbox"> Keep me signed in on this device</label>
+        <p class="auth-error" id="login-error" role="alert" hidden></p>
+        <button class="button button-primary button-full" type="submit">Sign in</button>
+      </form>
+
+      <section class="demo-accounts" aria-labelledby="demo-title">
+        <h2 id="demo-title">Demo accounts</h2>
+        <p class="muted small">Pick a role to fill in its sign-in details.</p>
+        <ul class="demo-list" id="demo-list"></ul>
+      </section>
+    </div>
+  </div>
+
+  <div class="auth-hero">
+    <div>
+      <h2>Ready to build a <span>stronger you</span> today?</h2>
+      <p>One place for members, trainers, attendance, payments and progress, with the right access for every role.</p>
+    </div>
+  </div>
+</section>
+
 <div class="app-shell">
   <aside class="sidebar" id="sidebar" aria-label="Main sidebar">
     <a class="brand" href="#dashboard">
-      <span class="brand-mark" aria-hidden="true">▥</span>
+      <span class="brand-mark" aria-hidden="true">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="30"
+          height="30"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M6.5 6.5v11" />
+          <path d="M17.5 6.5v11" />
+          <path d="M3.5 9v6" />
+          <path d="M20.5 9v6" />
+          <path d="M6.5 12h11" />
+          <path d="M3.5 12h3" />
+          <path d="M17.5 12h3" />
+        </svg>
+      </span>
       <span><strong>Smart <em>Gym</em></strong><small>Train · Track · Achieve</small></span>
     </a>
-
     <nav class="primary-nav" aria-label="Main navigation">
       <a class="nav-link is-active" aria-current="page" href="#dashboard">▦ <span>Dashboard</span></a>
       <a class="nav-link" href="#members">♙ <span>Members</span></a>
@@ -29,10 +100,11 @@
       <a class="nav-link" href="#workouts">☷ <span>Workout Plans</span></a>
       <a class="nav-link" href="#classes">◷ <span>Classes & Bookings</span></a>
       <a class="nav-link" href="#progress">▱ <span>Progress & Goals</span></a>
-      <a class="nav-link" href="#equipment">⚙ <span>Equipment</span></a>
+      <a class="nav-link" href="#equipment">⌁ <span>Equipment</span></a>
       <a class="nav-link" href="#reports">▧ <span>Reports</span></a>
-      <a class="nav-link" href="#settings">☷ <span>Settings / Roles</span></a>
+      <a class="nav-link" href="#settings">⚙ <span>Settings / Roles</span></a>
     </nav>
+
 
     <section class="upgrade-card">
       <h2>♛ Your gym, organized</h2>
@@ -54,13 +126,31 @@
         <label class="sr-only" for="global-search">Search gym records</label>
         <span aria-hidden="true">⌕</span>
         <input id="global-search" type="search"
-          placeholder="Search members, trainers, plans…" autocomplete="off">
+          placeholder="Search members, trainers, pages…" autocomplete="off"
+          role="combobox" aria-expanded="false" aria-controls="search-results" aria-autocomplete="list">
         <button class="sr-only" type="submit">Search</button>
+        <ul class="search-results" id="search-results" role="listbox" aria-label="Search results" hidden></ul>
+        <p class="sr-only" id="search-status" role="status"></p>
       </form>
 
       <div class="topbar-actions">
+        <button class="icon-button" id="theme-toggle" type="button" aria-label="Switch to light mode"></button>
         <button class="icon-button" id="notification-button" type="button" aria-label="Show notifications">
-          ♧<span class="notification-dot"></span>
+          <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.8"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true">
+       <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+       <path d="M10 21h4" />
+        </svg>
+      <span class="notification-dot"></span>
         </button>
         <button class="profile-button" id="profile-button" type="button" aria-expanded="false">
           <span class="avatar" aria-hidden="true">A</span>
@@ -70,6 +160,7 @@
     </header>
 
     <main id="main-content" class="dashboard">
+      <nav class="crumbs" id="crumbs" aria-label="Breadcrumb" hidden></nav>
 
       <!-- Dashboard hero with gym image -->
       <section id="dashboard" class="hero-grid">
@@ -105,6 +196,8 @@
           </div>
           <ul class="time-list" id="time-list" aria-label="Attendance by time"></ul>
         </section>
+
+        <section class="panel my-summary" id="my-summary" aria-labelledby="my-summary-title" hidden></section>
       </section>
 
       <!-- Summary statistics -->
@@ -139,7 +232,7 @@
 
         <section class="panel membership-panel" id="memberships">
           <div class="section-heading">
-            <div><h2>Membership Status</h2><p class="muted">Current membership breakdown</p></div>
+            <div><h2>Membership plans</h2><p class="muted">Current membership breakdown</p></div>
           </div>
           <div class="membership-content">
             <div class="donut" id="membership-donut" role="img" aria-label="Membership status">

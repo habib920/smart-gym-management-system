@@ -50,6 +50,12 @@ let data = (() => {
 })();
 let searchTerm = "";
 
+/* ---------- Access hooks (auth.js fills these in after sign-in) ---------- */
+const access = {
+  records: (items) => items,
+  results: (items) => items
+};
+
 function save() {
   try {
     localStorage.setItem(KEY, JSON.stringify(data));
@@ -189,7 +195,7 @@ function renderAll() {
       <div class="card-actions">${btn("delete-trainer", t.id)}</div>
     </article>`);
 
-  list("#attendance-table", "#attendance-empty", [...data.attendance].reverse(), (a) => `
+  list("#attendance-table", "#attendance-empty", access.records([...data.attendance]).reverse(), (a) => `
     <tr>
       <td>${fmtDate(a.date)} · ${esc(a.time || "")}</td>
       <td>${esc(memberName(a.memberId))}</td>
@@ -197,8 +203,9 @@ function renderAll() {
       <td>${pill("Confirmed")}</td>
     </tr>`);
 
-  $("#payment-total").textContent = money(data.payments.reduce((s, p) => s + Number(p.amount || 0), 0));
-  list("#payment-table", "#payments-empty", [...data.payments].reverse(), (p) => `
+  $("#payment-total").textContent = money(access.records(data.payments).reduce((s, p) => s + Number(p.amount || 0), 0));
+
+  list("#payment-table", "#payments-empty", access.records([...data.payments]).reverse(), (p) => `
     <tr>
       <td>${fmtDate(p.date)}</td>
       <td>${esc(memberName(p.memberId))}</td>
@@ -207,7 +214,7 @@ function renderAll() {
       <td><div class="table-actions"><strong>${money(p.amount)}</strong>${btn("delete-payment", p.id)}</div></td>
     </tr>`);
 
-  list("#workout-list", "#workouts-empty", data.workouts, (w) => `
+  list("#workout-list", "#workouts-empty", access.records(data.workouts), (w) => `
     <article class="record-card">
       <h3>${esc(w.name)}</h3>
       <p>Member: ${esc(memberName(w.memberId))}</p>
@@ -225,15 +232,15 @@ function renderAll() {
       <div class="card-actions">${btn("delete-class", c.id)}</div>
     </article>`);
 
-  list("#booking-table", "#bookings-empty", [...data.bookings].reverse(), (b) => `
+  list("#booking-table", "#bookings-empty", access.records([...data.bookings]).reverse(), (b) => `
     <tr>
       <td>${esc(memberName(b.memberId))}</td>
       <td>${esc(data.classes.find((c) => c.id === b.classId)?.name || "Unknown class")}</td>
-      <td>${fmtDate(b.date)}</td>
+      <td>${fmtDate(b.classDate || data.classes.find((c) => c.id === b.classId)?.date || b.date)}</td>
       <td><div class="table-actions">${pill("Confirmed")}${btn("cancel-booking", b.id, "Cancel")}</div></td>
     </tr>`);
 
-  list("#progress-table", "#progress-empty", [...data.progress].reverse(), (p) => `
+  list("#progress-table", "#progress-empty", access.records([...data.progress]).reverse(), (p) => `
     <tr>
       <td>${esc(memberName(p.memberId))}</td>
       <td>${esc(p.weight)} kg</td>
@@ -261,7 +268,7 @@ function renderSettings() {
   $("#user-role").value = role;
   if (!$("#user-role").value) $("#user-role").value = "Gym Manager";
   $("#gym-name").value = gymName;
-  document.title = `${gymName} | Fitness Management Dashboard`;
+  updateTitle();
   $("#profile-button small").textContent = role;
   const words = gymName.split(" ");
   const last = words.pop();
@@ -278,6 +285,7 @@ function refresh() {
   renderDashboard();
   renderAll();
   renderSettings();
+  window.applyRoleUI?.();
 }
 
 /* ---------- Members ---------- */
@@ -432,7 +440,13 @@ onSubmit("booking-form", () => {
   if (data.bookings.some((b) => b.memberId === memberId && b.classId === classId))
     return { error: "This member already booked this class." };
   if (countBookings(classId) >= Number(cls.capacity)) return { error: "This class is full." };
-  data.bookings.push({ id: uid(), memberId, classId, date: today() });
+  data.bookings.push({
+    id: uid(),
+    memberId,
+    classId,
+    date: today(),
+    classDate: cls.date
+  });
   return { ok: "Class booking saved." };
 });
 
@@ -534,35 +548,12 @@ document.addEventListener("click", (e) => {
     return;
   }
 
-  const link = e.target.closest(".nav-link");
-  const target = link && $(link.getAttribute("href"));
-  if (target) {
-    e.preventDefault();
-    document.querySelectorAll(".nav-link").forEach((l) => {
-      l.classList.remove("is-active");
-      l.removeAttribute("aria-current");
-    });
-    link.classList.add("is-active");
-    link.setAttribute("aria-current", "page");
-    target.scrollIntoView({ behavior: "smooth", block: "start" });
-    setMenu(false);
-  }
+  if (e.target.closest(".nav-link")) setMenu(false);
 });
 
 $("#menu-toggle").addEventListener("click", () => setMenu(!$("#sidebar").classList.contains("is-open")));
 $("#backdrop").addEventListener("click", () => setMenu(false));
 document.addEventListener("keydown", (e) => e.key === "Escape" && setMenu(false));
-
-$("#global-search").addEventListener("input", (e) => {
-  searchTerm = e.target.value.trim();
-  renderMembers();
-});
-$("#search-form").addEventListener("submit", (e) => {
-  e.preventDefault();
-  searchTerm = val("global-search");
-  renderMembers();
-  if (searchTerm) $("#members").scrollIntoView({ behavior: "smooth", block: "start" });
-});
 
 $("#activity-period").addEventListener("change", renderDashboard);
 $("#member-cancel").addEventListener("click", resetMemberForm);
@@ -597,7 +588,213 @@ $("#reset-demo").addEventListener("click", () => {
   toast("All data has been reset.");
 });
 
+/* ---------- Theme (dark / light) ---------- */
+
+const THEME_ICONS = {
+  sun: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+  moon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>'
+};
+
+function applyTheme(theme, persist) {
+  document.documentElement.dataset.theme = theme;
+  if (persist) {
+    try {
+      localStorage.setItem("smartGymTheme", theme);
+    } catch {
+      /* storage blocked: the theme still changes for this visit */
+    }
+  }
+  const button = $("#theme-toggle");
+  button.innerHTML = theme === "dark" ? THEME_ICONS.sun : THEME_ICONS.moon;
+  button.setAttribute("aria-label", theme === "dark" ? "Switch to light mode" : "Switch to dark mode");
+  $('meta[name="theme-color"]').content = theme === "dark" ? "#0b0f14" : "#f3f5f9";
+}
+
+$("#theme-toggle").addEventListener("click", () => {
+  applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark", true);
+});
+
+/* ---------- Pages (hash routing) ---------- */
+
+const PAGES = {
+  dashboard: "Dashboard",
+  members: "Members",
+  memberships: "Memberships",
+  trainers: "Trainers",
+  attendance: "Attendance / QR",
+  payments: "Payments",
+  workouts: "Workout Plans",
+  classes: "Classes & Bookings",
+  progress: "Progress & Goals",
+  equipment: "Equipment",
+  reports: "Reports",
+  settings: "Settings / Roles"
+};
+
+/* Which page(s) each section belongs to */
+[
+  ["#dashboard", "dashboard"],
+  [".stats-grid", "dashboard"],
+  [".analytics-grid", "dashboard memberships"],
+  [".chart-panel", "dashboard"],
+  ["#members", "members memberships"],
+  ["#trainers", "trainers"],
+  ["#attendance", "attendance"],
+  ["#payments", "payments"],
+  ["#workouts", "workouts"],
+  ["#classes", "classes"],
+  ["#progress", "progress"],
+  ["#equipment", "equipment"],
+  ["#reports", "reports"],
+  ["#settings", "settings"]
+].forEach(([selector, pages]) => $(selector)?.setAttribute("data-page", pages));
+
+let currentPage = "dashboard";
+let firstRoute = true;
+
+function updateTitle() {
+  const name = data.settings.gymName;
+  document.title =
+    currentPage === "dashboard" ? `${name} | Fitness Management Dashboard` : `${PAGES[currentPage]} | ${name}`;
+  $('meta[name="description"]').content = `${PAGES[currentPage]} page of the ${name} fitness management dashboard.`;
+}
+
+function route() {
+  const key = location.hash.slice(1);
+  if (!PAGES[key] && !firstRoute) return; // other hashes, such as the skip link, keep the current page
+  currentPage = PAGES[key] ? key : "dashboard";
+
+  document.querySelectorAll("[data-page]").forEach((el) => {
+    el.hidden = !el.dataset.page.split(" ").includes(currentPage);
+  });
+
+  document.querySelectorAll(".nav-link").forEach((link) => {
+    const on = link.getAttribute("href") === "#" + currentPage;
+    link.classList.toggle("is-active", on);
+    if (on) link.setAttribute("aria-current", "page");
+    else link.removeAttribute("aria-current");
+  });
+
+  const crumbs = $("#crumbs");
+  crumbs.hidden = currentPage === "dashboard";
+  crumbs.innerHTML = `<ol><li><a href="#dashboard">Dashboard</a></li><li aria-current="page">${esc(PAGES[currentPage])}</li></ol>`;
+
+  updateTitle();
+  setMenu(false);
+  window.scrollTo({ top: 0, behavior: "instant" });
+
+  const heading = $("#main-content [data-page]:not([hidden]) :is(h1, h2)");
+  if (heading && !firstRoute) {
+    heading.tabIndex = -1;
+    heading.focus({ preventScroll: true }); // tells screen readers the page changed
+  }
+  firstRoute = false;
+}
+
+window.addEventListener("hashchange", route);
+
+/* ---------- Global search (every record + pages) ---------- */
+
+function searchIndex() {
+  const out = [];
+  const add = (type, page, id, label, sub = "") =>
+    out.push({ type, page, id, label, sub, text: `${label} ${sub}`.toLowerCase() });
+
+  Object.entries(PAGES).forEach(([key, name]) => add("Page", key, "", name));
+  data.members.forEach((m) => add("Member", "members", m.id, m.name, `${m.plan} · ${m.phone}`));
+  data.trainers.forEach((t) => add("Trainer", "trainers", t.id, t.name, t.specialty || ""));
+  data.attendance.forEach((a) => add("Attendance", "attendance", a.id, memberName(a.memberId), `${a.date} ${a.time || ""}`));
+  data.payments.forEach((p) => add("Payment", "payments", p.id, memberName(p.memberId), `${p.purpose} · ${money(p.amount)}`));
+  data.workouts.forEach((w) => add("Workout plan", "workouts", w.id, w.name, memberName(w.memberId)));
+  data.classes.forEach((c) => add("Class", "classes", c.id, c.name, c.date));
+  data.bookings.forEach((b) =>
+    add("Booking", "classes", b.id, memberName(b.memberId), data.classes.find((c) => c.id === b.classId)?.name || ""));
+  data.progress.forEach((p) => add("Progress", "progress", p.id, memberName(p.memberId), p.goal || ""));
+  data.equipment.forEach((e) => add("Equipment", "equipment", e.id, e.name, e.condition));
+  return out;
+}
+
+const searchInput = $("#global-search");
+const resultsBox = $("#search-results");
+let found = [];
+let activeResult = -1;
+
+function closeResults() {
+  resultsBox.hidden = true;
+  searchInput.setAttribute("aria-expanded", "false");
+  searchInput.removeAttribute("aria-activedescendant");
+  activeResult = -1;
+}
+
+function setActiveResult(i) {
+  activeResult = i;
+  resultsBox.querySelectorAll("li").forEach((li, n) => li.classList.toggle("is-active", n === i));
+  if (i < 0) searchInput.removeAttribute("aria-activedescendant");
+  else searchInput.setAttribute("aria-activedescendant", "sr-" + i);
+}
+
+function highlightRecord(id) {
+  if (!id) return;
+  const row = document.querySelector(`[data-id="${CSS.escape(id)}"]`)?.closest("tr, article");
+  if (!row) return;
+  row.scrollIntoView({ block: "center" });
+  row.classList.add("is-found");
+  setTimeout(() => row.classList.remove("is-found"), 2500);
+}
+
+function openResult(result) {
+  closeResults();
+  searchInput.value = "";
+  if (location.hash === "#" + result.page) {
+    highlightRecord(result.id);
+  } else {
+    window.addEventListener("hashchange", () => highlightRecord(result.id), { once: true });
+    location.hash = result.page;
+  }
+}
+
+searchInput.addEventListener("input", () => {
+  const words = searchInput.value.toLowerCase().split(/\s+/).filter(Boolean);
+  if (!words.length) return closeResults();
+
+  found = access.results(searchIndex()).filter((r) => words.every((w) => r.text.includes(w))).slice(0, 8);
+  resultsBox.innerHTML = found.length
+    ? found
+        .map((r, i) => `<li role="option" id="sr-${i}" data-i="${i}"><strong>${esc(r.label)}</strong><small>${esc(r.type)}${r.sub ? " · " + esc(r.sub) : ""}</small></li>`)
+        .join("")
+    : `<li class="no-result" role="option" aria-disabled="true">No matches for “${esc(searchInput.value.trim())}”</li>`;
+  resultsBox.hidden = false;
+  searchInput.setAttribute("aria-expanded", "true");
+  activeResult = -1;
+  $("#search-status").textContent = found.length ? `${found.length} results` : "No results";
+});
+
+searchInput.addEventListener("keydown", (e) => {
+  if (resultsBox.hidden) return;
+  if (e.key === "Escape") return closeResults();
+  if (!found.length) return;
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    e.preventDefault();
+    setActiveResult((activeResult + (e.key === "ArrowDown" ? 1 : -1) + found.length) % found.length);
+  } else if (e.key === "Enter") {
+    e.preventDefault();
+    openResult(found[activeResult < 0 ? 0 : activeResult]);
+  }
+});
+
+resultsBox.addEventListener("click", (e) => {
+  const item = e.target.closest("li[data-i]");
+  if (item) openResult(found[Number(item.dataset.i)]);
+});
+
+$("#search-form").addEventListener("submit", (e) => e.preventDefault());
+document.addEventListener("click", (e) => {
+  if (!e.target.closest(".search-form")) closeResults();
+});
+
 /* ---------- Start ---------- */
 
+applyTheme(document.documentElement.dataset.theme || "dark", false);
 resetMemberForm();
 refresh();
+route();
