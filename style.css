@@ -1328,3 +1328,269 @@ tbody tr:hover {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* =========================================================
+   ADDED: search dropdown, breadcrumbs, found highlight,
+   single-panel memberships page, light theme
+   ========================================================= */
+
+/* ---------- Global search dropdown ---------- */
+.search-form {
+  position: relative;
+}
+
+.search-results {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 600;
+  max-height: 60vh;
+  margin: 0;
+  padding: 6px;
+  overflow-y: auto;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.search-results li {
+  display: grid;
+  gap: 2px;
+  min-height: 44px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.search-results li:hover,
+.search-results li.is-active {
+  background: var(--surface-hover);
+}
+
+.search-results .no-result {
+  color: var(--muted);
+  cursor: default;
+}
+
+/* ---------- Breadcrumbs ---------- */
+.crumbs {
+  margin-bottom: 14px;
+  font-size: 0.82rem;
+}
+
+.crumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+}
+
+.crumbs li + li::before {
+  margin-right: 6px;
+  content: "/";
+}
+
+.crumbs a {
+  color: var(--orange-light);
+}
+
+.crumbs a:hover {
+  text-decoration: underline;
+}
+
+.crumbs li[aria-current] {
+  color: var(--text);
+}
+
+/* ---------- Record found via search ---------- */
+.is-found {
+  outline: 2px solid var(--orange);
+  outline-offset: -2px;
+  background: rgb(255 132 43 / 14%);
+}
+
+/* ---------- Memberships page: only the plans panel is visible ---------- */
+.analytics-grid:has(> .chart-panel[hidden]) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* ---------- Light theme ---------- */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f3f5f9;
+  --surface: #ffffff;
+  --surface-light: #eef1f6;
+  --surface-hover: #e3e8f0;
+  --border: #d5dce8;
+  --text: #121620;
+  --muted: #566074;
+  --orange: #c2410c;
+  --orange-light: #9a3412;
+  --green: #1b7f58;
+  --blue: #1d4ed8;
+  --red: #c62833;
+  --yellow: #a16207;
+  --shadow: 0 8px 24px rgb(20 30 50 / 8%);
+}
+
+[data-theme="light"] .sidebar {
+  background: #ffffff;
+}
+
+[data-theme="light"] .topbar {
+  background: rgb(243 245 249 / 92%);
+}
+
+[data-theme="light"] .nav-link {
+  color: #4a5566;
+}
+
+[data-theme="light"] .nav-link.is-active {
+  border-color: rgb(194 65 12 / 25%);
+  background: rgb(194 65 12 / 9%);
+}
+
+[data-theme="light"] .upgrade-card {
+  border-color: #f3c7a6;
+  background: linear-gradient(145deg, #fff1e6, #ffffff);
+}
+
+[data-theme="light"] .brand-mark,
+[data-theme="light"] .skip-link {
+  color: #ffffff;
+}
+
+[data-theme="light"] .avatar {
+  border-color: #f3c7a6;
+  background: #ffe9da;
+}
+
+[data-theme="light"] .welcome-panel {
+  background: #ffffff;
+}
+
+[data-theme="light"] .hero-image {
+  background-image:
+    linear-gradient(
+      90deg,
+      #ffffff 0%,
+      rgb(255 255 255 / 95%) 27%,
+      rgb(255 255 255 / 65%) 54%,
+      rgb(255 255 255 / 10%) 100%
+    ),
+    url("gym-hero.png");
+  background-position: center, center 35%;
+  opacity: 1;
+}
+
+[data-theme="light"] .stat-icon {
+  border-color: #f3c7a6;
+  background: #ffe9da;
+}
+
+[data-theme="light"] .bar-track {
+  background: rgb(0 0 0 / 5%);
+}
+
+[data-theme="light"] .bar-fill {
+  background: linear-gradient(0deg, #c2410c, #ff842b);
+}
+
+[data-theme="light"] .button-primary {
+  background: #c2410c;
+  color: #ffffff;
+}
+
+[data-theme="light"] .button-primary:hover {
+  background: #d9480f;
+}
+
+[data-theme="light"] .button-secondary {
+  border-color: #9bd3b6;
+  background: #e2f6ea;
+  color: #14633f;
+}
+
+[data-theme="light"] .button-secondary:hover {
+  background: #d2efdd;
+}
+
+[data-theme="light"] .data-form {
+  background: rgb(0 0 0 / 3%);
+}
+
+[data-theme="light"] .data-form label {
+  color: var(--text);
+}
+
+[data-theme="light"] .data-form input,
+[data-theme="light"] .data-form select,
+[data-theme="light"] .data-form textarea {
+  border-color: #c5cfdb;
+  background: #ffffff;
+}
+
+[data-theme="light"] .compact-form {
+  border-color: #9bd3b6;
+}
+
+[data-theme="light"] th {
+  background: #eef1f6;
+}
+
+[data-theme="light"] td {
+  color: var(--text);
+}
+
+[data-theme="light"] tbody tr:hover {
+  background: rgb(0 0 0 / 3%);
+}
+
+[data-theme="light"] .record-card,
+[data-theme="light"] .report-tile {
+  background: #f8fafc;
+}
+
+[data-theme="light"] .record-card:hover {
+  border-color: #f0b48c;
+}
+
+[data-theme="light"] .status-active,
+[data-theme="light"] .status-available,
+[data-theme="light"] .status-good,
+[data-theme="light"] .status-confirmed {
+  border-color: #86efac;
+  background: #dcfce7;
+  color: #166534;
+}
+
+[data-theme="light"] .status-expiring,
+[data-theme="light"] .status-busy,
+[data-theme="light"] .status-needs-maintenance,
+[data-theme="light"] .status-pending {
+  border-color: #fcd34d;
+  background: #fef3c7;
+  color: #854d0e;
+}
+
+[data-theme="light"] .status-expired,
+[data-theme="light"] .status-off-duty,
+[data-theme="light"] .status-out-of-service,
+[data-theme="light"] .status-cancelled {
+  border-color: #fca5a5;
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+[data-theme="light"] .toast {
+  border-color: #9bd3b6;
+  background: #e2f6ea;
+  color: #14633f;
+}
