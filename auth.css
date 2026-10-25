@@ -1,0 +1,310 @@
+/* =========================================================
+   Smart Gym — auth.css
+   Login screen, profile menu, member summary, role styling
+   ========================================================= */
+
+/* ---------- Show the login screen OR the app ---------- */
+html:not([data-auth="in"]) .app-shell,
+html:not([data-auth="in"]) .skip-link {
+  display: none;
+}
+
+html[data-auth="in"] .auth-screen {
+  display: none;
+}
+
+/* ---------- Login layout ---------- */
+.auth-screen {
+  display: grid;
+  min-height: 100vh;
+  min-height: 100dvh;
+  grid-template-columns: minmax(0, 1fr);
+  background: var(--bg);
+}
+
+.auth-panel {
+  display: grid;
+  place-items: center;
+  padding: 28px 16px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+}
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.auth-brand strong {
+  font-size: 1.3rem;
+  letter-spacing: -0.04em;
+}
+
+.auth-brand em {
+  color: var(--orange);
+  font-style: normal;
+}
+
+.auth-card h1 {
+  margin-bottom: 6px;
+  font-size: clamp(1.7rem, 5vw, 2.1rem);
+}
+
+/* ---------- Login form ---------- */
+.auth-form {
+  display: grid;
+  gap: 16px;
+  margin: 24px 0;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.field label {
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 650;
+}
+
+.auth-form input:not([type="checkbox"]) {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 12px;
+  border: 1px solid #344252;
+  border-radius: 10px;
+  outline: none;
+  background: #0e151d;
+  color: var(--text);
+  font-size: 1rem; /* 16px stops iPhones zooming in on focus */
+}
+
+.auth-form input::placeholder {
+  color: #778596;
+}
+
+.auth-form input:focus {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px rgb(255 132 43 / 14%);
+}
+
+.auth-form input[aria-invalid="true"] {
+  border-color: var(--red);
+}
+
+.password-field {
+  position: relative;
+}
+
+.password-field input {
+  padding-right: 76px;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  min-width: 56px;
+  min-height: 36px;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 8px;
+  background: var(--surface-light);
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.password-toggle:hover {
+  background: var(--surface-hover);
+}
+
+.auth-check {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.auth-check input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--orange);
+}
+
+.auth-error {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid #63343a;
+  border-radius: 10px;
+  background: #351e23;
+  color: #ff9da5;
+  font-size: 0.85rem;
+}
+
+/* ---------- Demo accounts ---------- */
+.demo-accounts {
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.demo-accounts h2 {
+  margin-bottom: 4px;
+  font-size: 0.95rem;
+}
+
+.demo-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.demo-btn {
+  display: grid;
+  width: 100%;
+  min-height: 48px;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  text-align: left;
+  transition: border-color var(--transition);
+}
+
+.demo-btn:hover {
+  border-color: var(--orange);
+}
+
+.demo-btn small {
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Image side (desktop only) ---------- */
+.auth-hero {
+  display: none;
+  align-items: flex-end;
+  padding: 48px;
+  background:
+    linear-gradient(0deg, rgb(11 15 20 / 92%), rgb(11 15 20 / 15%) 70%),
+    url("gym-hero.png") center 30% / cover,
+    #171a1f;
+  color: #f4f6f8;
+}
+
+.auth-hero h2 {
+  max-width: 14ch;
+  margin-bottom: 12px;
+  font-size: clamp(2rem, 3.4vw, 3rem);
+  letter-spacing: -0.045em;
+}
+
+.auth-hero h2 span {
+  color: #ff842b;
+}
+
+.auth-hero p {
+  max-width: 38ch;
+  margin: 0;
+  color: #c3ccd8;
+}
+
+@media (min-width: 900px) {
+  .auth-screen {
+    grid-template-columns: minmax(420px, 5fr) 6fr;
+  }
+
+  .auth-panel {
+    padding: 48px;
+  }
+
+  .auth-hero {
+    display: flex;
+  }
+}
+
+/* ---------- Profile menu (top bar) ---------- */
+.topbar-actions {
+  position: relative;
+}
+
+.profile-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 700;
+  display: grid;
+  width: min(260px, calc(100vw - 32px));
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.profile-menu p {
+  display: grid;
+  margin: 0;
+}
+
+.profile-menu small {
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Member dashboard ---------- */
+.my-summary {
+  grid-column: 1 / -1;
+  padding: 18px;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px;
+  margin: 12px 0 0;
+}
+
+.summary-grid dt {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.summary-grid dd {
+  margin: 2px 0 0;
+  font-weight: 700;
+}
+
+html[data-role="member"] .stats-grid,
+html[data-role="member"] .analytics-grid,
+html[data-role="member"] .activity-panel {
+  display: none;
+}
+
+html[data-role="member"] .hero-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* ---------- Light theme ---------- */
+[data-theme="light"] .auth-form input:not([type="checkbox"]) {
+  border-color: #c5cfdb;
+  background: #ffffff;
+}
+
+[data-theme="light"] .auth-error {
+  border-color: #fca5a5;
+  background: #fee2e2;
+  color: #991b1b;
+}
