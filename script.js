@@ -53,6 +53,7 @@ let searchTerm = "";
 /* ---------- Access hooks (auth.js fills these in after sign-in) ---------- */
 const access = {
   records: (items) => items,
+  classes: (items) => items,
   results: (items) => items
 };
 
@@ -223,7 +224,7 @@ function renderAll() {
       <div class="card-actions">${btn("delete-workout", w.id)}</div>
     </article>`);
 
-  list("#class-list", "#classes-empty", data.classes, (c) => `
+  list("#class-list", "#classes-empty", access.classes(data.classes), (c) => `
     <article class="record-card">
       <h3>${esc(c.name)}</h3>
       <p>Trainer: ${esc(data.trainers.find((t) => t.id === c.trainerId)?.name || "No trainer")}</p>
@@ -273,7 +274,6 @@ function renderSettings() {
   const words = gymName.split(" ");
   const last = words.pop();
   $(".brand strong").innerHTML = `${esc(words.join(" "))} <em>${esc(last)}</em>`.trim();
-  $(".footer span").textContent = `${gymName} · Fitness Management System`;
 }
 
 function refresh() {
@@ -595,6 +595,7 @@ const THEME_ICONS = {
   moon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>'
 };
 
+/* Every .theme-toggle button (login screen and top bar) shares this one function */
 function applyTheme(theme, persist) {
   document.documentElement.dataset.theme = theme;
   if (persist) {
@@ -604,14 +605,17 @@ function applyTheme(theme, persist) {
       /* storage blocked: the theme still changes for this visit */
     }
   }
-  const button = $("#theme-toggle");
-  button.innerHTML = theme === "dark" ? THEME_ICONS.sun : THEME_ICONS.moon;
-  button.setAttribute("aria-label", theme === "dark" ? "Switch to light mode" : "Switch to dark mode");
+  document.querySelectorAll(".theme-toggle").forEach((button) => {
+    button.innerHTML = theme === "dark" ? THEME_ICONS.sun : THEME_ICONS.moon;
+    button.setAttribute("aria-label", theme === "dark" ? "Switch to light mode" : "Switch to dark mode");
+  });
   $('meta[name="theme-color"]').content = theme === "dark" ? "#0b0f14" : "#f3f5f9";
 }
 
-$("#theme-toggle").addEventListener("click", () => {
-  applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark", true);
+document.querySelectorAll(".theme-toggle").forEach((button) => {
+  button.addEventListener("click", () => {
+    applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark", true);
+  });
 });
 
 /* ---------- Pages (hash routing) ---------- */
