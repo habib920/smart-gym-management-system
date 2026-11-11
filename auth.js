@@ -1,6 +1,6 @@
 "use strict";
 
-/* =========================================================
+/*
    Smart Gym — auth.js
    Front-end login, roles and permissions.
 
@@ -9,7 +9,7 @@
    server and returns a signed session token.
 
    Loads AFTER script.js and uses its globals ($, data, refresh, route…).
-   ========================================================= */
+   */
 (() => {
   const SESSION_KEY = "smartGymSession";
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -18,7 +18,7 @@
   const USERS = [
     { email: "manager@smartgym.com", password: "Manager123", name: "Dawit Mulugeta", role: "Gym Manager" },
     { email: "reception@smartgym.com", password: "Reception123", name: "Selam Mekonnen", role: "Reception Staff" },
-    { email: "trainer@smartgym.com", password: "Trainer123", name: "Henok Tilahun", role: "Trainer" },
+    { email: "trainer@smartgym.com", password: "Trainer123", name: "Henok Tilahun", role: "Trainer", phone: "0911000002" },
     { email: "member@smartgym.com", password: "Member123", name: "Abel Bekele", role: "Member", phone: "0911000001" }
   ];
 
@@ -33,8 +33,8 @@
     },
     Trainer: {
       pages: ["dashboard", "members", "attendance", "workouts", "classes", "progress"],
-      forms: ["checkin-form", "workout-form", "class-form", "booking-form", "progress-form"],
-      actions: ["checkin-member", "delete-workout", "delete-class", "cancel-booking", "delete-progress"],
+      forms: ["checkin-form", "workout-form", "class-form", "progress-form"],
+      actions: ["checkin-member", "delete-workout", "delete-class", "delete-progress"],
       tools: false
     },
     Member: {
@@ -52,8 +52,75 @@
     Member: ["#classes", "Book a Class →"]
   };
 
+  /* ---------- Wording for each role (anything not listed keeps the default text) ---------- */
+  const WORDING = {
+    "Gym Manager": {
+      search: ["Search members, trainers, payments, pages…", "Search gym records"]
+    },
+    "Reception Staff": {
+      search: ["Search members, payments, bookings…", "Search members, payments and bookings"],
+      hero: "Register members, record check-ins and payments, and keep the front desk running smoothly.",
+      classes: ["Classes & Bookings", "Book members into upcoming classes and manage their bookings."]
+    },
+    Trainer: {
+      search: ["Search members, workout plans, my classes…", "Search members, workout plans and your classes"],
+      hero: "Plan workouts, run your classes and follow your members' progress.",
+      labels: { classes: "My Classes" },
+      members: ["Members", "View your gym's members and check them in."],
+      classes: ["My Classes", "Create your own classes and see who has booked them."],
+      empty: {
+        "#classes-empty": "You have not created any classes yet.",
+        "#bookings-empty": "No one has booked your classes yet."
+      }
+    },
+    Member: {
+      search: ["Search classes, my workouts, my payments…", "Search classes and your own workouts and payments"],
+      hero: "Track your membership, book classes and follow your own progress.",
+      labels: {
+        attendance: "My Attendance",
+        payments: "My Payments",
+        workouts: "My Workout Plans",
+        progress: "My Progress"
+      },
+      attendance: ["My Attendance", "Your check-ins at the gym."],
+      payments: ["My Payments", "Your payment history."],
+      workouts: ["My Workout Plans", "Plans your trainer has assigned to you."],
+      classes: ["Classes & Bookings", "See upcoming classes and book your spot."],
+      progress: ["My Progress & Goals", "Log your weight and track your fitness goals."],
+      paymentTotal: "Total paid: ",
+      empty: {
+        "#attendance-empty": "You have no check-ins yet.",
+        "#payments-empty": "You have no payments recorded yet.",
+        "#workouts-empty": "No workout plan has been assigned to you yet.",
+        "#classes-empty": "No classes are scheduled yet.",
+        "#bookings-empty": "You have not booked any classes yet.",
+        "#progress-empty": "You have not logged any progress yet."
+      }
+    }
+  };
+
+  /* Where each piece of wording lives on the page */
+  const TEXT_TARGETS = {
+    members: ["#members .section-heading h2", "#members .section-heading p"],
+    attendance: ["#attendance .section-heading h2", "#attendance .section-heading p"],
+    payments: ["#payments .section-heading h2", "#payments .section-heading p"],
+    workouts: ["#workouts .section-heading h2", "#workouts .section-heading p"],
+    classes: ["#classes .section-heading h2", "#classes .section-heading p"],
+    progress: ["#progress .section-heading h2", "#progress .section-heading p"]
+  };
+  const EMPTY_IDS = ["#attendance-empty", "#payments-empty", "#workouts-empty", "#classes-empty", "#bookings-empty", "#progress-empty"];
+
+  const DEFAULT_LABELS = { ...PAGES };
+  const DEFAULT_TOTAL_LABEL = $("#payments .summary-line").firstChild.textContent;
+
   const OWNED = { Attendance: "attendance", Payment: "payments", "Workout plan": "workouts", Booking: "bookings", Progress: "progress" };
-  const SELF_SELECTS = ["#booking-member", "#progress-member"];
+
+  /* Pickers that are locked to the signed-in person: [selector, role, own id] */
+  const SELF_SELECTS = [
+    ["#booking-member", "Member", () => session.memberId],
+    ["#progress-member", "Member", () => session.memberId],
+    ["#class-trainer", "Trainer", () => session.trainerId]
+  ];
 
   let session = null;
   let attempts = 0;
@@ -64,22 +131,42 @@
     return !list || list.includes(id);
   };
   const initials = (name) => name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+  const ownClassIds = () => new Set(data.classes.filter((c) => c.trainerId === session.trainerId).map((c) => c.id));
 
   /* ---------- Hooks used by script.js ---------- */
-  access.records = (items) =>
-    session && session.role === "Member" ? items.filter((i) => i.memberId === session.memberId) : items;
+  access.records = (items) => {
+    if (!session) return items;
+    if (session.role === "Member") return items.filter((i) => i.memberId === session.memberId);
+    if (session.role === "Trainer") {
+      const mine = ownClassIds();
+      return items.filter((i) => !i.classId || mine.has(i.classId)); // bookings only for their own classes
+    }
+    return items;
+  };
+
+  access.classes = (items) =>
+    session && session.role === "Trainer" ? items.filter((c) => c.trainerId === session.trainerId) : items;
 
   access.results = (items) => {
     if (!session) return items;
     return items.filter((r) => {
       if (!allow("pages", r.page)) return false;
-      if (session.role !== "Member") return true;
-      const collection = OWNED[r.type];
-      return !collection || data[collection].find((i) => i.id === r.id)?.memberId === session.memberId;
+      if (session.role === "Member") {
+        const collection = OWNED[r.type];
+        return !collection || data[collection].find((i) => i.id === r.id)?.memberId === session.memberId;
+      }
+      if (session.role === "Trainer") {
+        if (r.type === "Class") return data.classes.find((c) => c.id === r.id)?.trainerId === session.trainerId;
+        if (r.type === "Booking") {
+          const b = data.bookings.find((x) => x.id === r.id);
+          return Boolean(b) && ownClassIds().has(b.classId);
+        }
+      }
+      return true;
     });
   };
 
-  /* ---------- Member record linked to the Member account ---------- */
+  /* ---------- Records linked to the Member and Trainer accounts ---------- */
   function ensureMember(user) {
     let m = data.members.find(
       (x) => (user.phone && x.phone === user.phone) || x.name.toLowerCase() === user.name.toLowerCase()
@@ -91,6 +178,17 @@
       data.members.push(m);
     }
     return m.id;
+  }
+
+  function ensureTrainer(user) {
+    let t = data.trainers.find(
+      (x) => (user.phone && x.phone === user.phone) || x.name.toLowerCase() === user.name.toLowerCase()
+    );
+    if (!t) {
+      t = { id: uid(), name: user.name, specialty: "General fitness", phone: user.phone || "", availability: "Available" };
+      data.trainers.push(t);
+    }
+    return t.id;
   }
 
   /* ---------- Profile menu ---------- */
@@ -137,6 +235,38 @@
       </dl>`;
   }
 
+  /* ---------- Role-specific wording ---------- */
+  function setText(el, text) {
+    if (!el) return;
+    if (el.dataset.default === undefined) el.dataset.default = el.textContent;
+    el.textContent = text ?? el.dataset.default;
+  }
+
+  function applyWording() {
+    const w = WORDING[session.role];
+
+    Object.assign(PAGES, DEFAULT_LABELS, w.labels); // page names used by the sidebar, breadcrumbs, title and search
+    $$(".nav-link").forEach((link) => {
+      link.querySelector("span").textContent = PAGES[link.getAttribute("href").slice(1)];
+    });
+
+    const [placeholder, searchLabel] = w.search;
+    $("#global-search").placeholder = placeholder;
+    $('label[for="global-search"]').textContent = searchLabel;
+
+    setText($(".welcome-copy > p.muted"), w.hero);
+    Object.entries(TEXT_TARGETS).forEach(([key, [heading, intro]]) => {
+      setText($(heading), w[key]?.[0]);
+      setText($(intro), w[key]?.[1]);
+    });
+    $("#payments .summary-line").firstChild.textContent = w.paymentTotal ?? DEFAULT_TOTAL_LABEL;
+    EMPTY_IDS.forEach((sel) => setText($(sel), w.empty?.[sel]));
+
+    const crumb = $("#crumbs li[aria-current]");
+    if (crumb) crumb.textContent = PAGES[currentPage];
+    updateTitle();
+  }
+
   /* ---------- Apply the role to the whole interface ---------- */
   function applyRoleUI() {
     if (!session) return;
@@ -151,15 +281,15 @@
     $("#export-csv").hidden = !rules.tools;
     $("#reset-demo").hidden = !rules.tools;
 
-    SELF_SELECTS.forEach((sel) => {
+    SELF_SELECTS.forEach(([sel, role, ownId]) => {
       const select = $(sel);
-      if (session.role === "Member") {
-        [...select.options].forEach((o) => { if (o.value && o.value !== session.memberId) o.remove(); });
-        select.value = session.memberId;
-        select.disabled = true;
-      } else {
-        select.disabled = false;
+      const lock = session.role === role;
+      if (lock) {
+        [...select.options].forEach((o) => { if (o.value && o.value !== ownId()) o.remove(); });
+        select.value = ownId();
       }
+      select.disabled = lock;
+      select.closest("label").hidden = lock; // people always act as themselves, so no picker
     });
 
     const [href, label] = HERO_LINK[session.role];
@@ -174,6 +304,7 @@
     $("#user-role").value = session.role;
     $("#user-role").disabled = true; // the role now comes from the account
 
+    applyWording();
     renderMySummary();
     renderProfileMenu();
   }
@@ -192,7 +323,11 @@
 
   /* ---------- Sign in / out ---------- */
   function openApp(user, fresh) {
-    session = { ...user, memberId: user.role === "Member" ? ensureMember(user) : "" };
+    session = {
+      ...user,
+      memberId: user.role === "Member" ? ensureMember(user) : "",
+      trainerId: user.role === "Trainer" ? ensureTrainer(user) : ""
+    };
     document.documentElement.dataset.auth = "in";
     $(".app-shell").inert = false;
     $("#login-form").reset();
@@ -335,6 +470,16 @@
       if (!t.closest("#profile-menu")) setMenuOpen(false);
       if (!session) return;
 
+      // Members only see their own membership in the bell, not gym-wide numbers
+      if (session.role === "Member" && t.closest("#notification-button")) {
+        e.stopImmediatePropagation();
+        const m = data.members.find((x) => x.id === session.memberId);
+        window.alert(
+          m ? `Membership: ${isActive(m) ? "Active" : "Expired"}\nExpires: ${fmtDate(m.expiry)}` : "No membership found."
+        );
+        return;
+      }
+
       const action = t.closest("[data-action]");
       const blocked =
         (action && !allow("actions", action.dataset.action)) ||
@@ -359,7 +504,10 @@
         toast("Your role does not have permission for that action.");
         return;
       }
-      if (session.role === "Member") SELF_SELECTS.forEach((sel) => { $(sel).value = session.memberId; });
+      // Force locked pickers back to the signed-in person before the form is processed
+      SELF_SELECTS.forEach(([sel, role, ownId]) => {
+        if (session.role === role) $(sel).value = ownId();
+      });
     },
     true
   );
