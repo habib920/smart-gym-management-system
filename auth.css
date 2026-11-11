@@ -1,7 +1,8 @@
-/* =========================================================
+/* 
    Smart Gym — auth.css
-   Login screen, profile menu, member summary, role styling
-   ========================================================= */
+   Login screen, profile menu, member summary, mobile top bar
+   and small form fixes. Loads after style.css.
+    */
 
 /* ---------- Show the login screen OR the app ---------- */
 html:not([data-auth="in"]) .app-shell,
@@ -13,24 +14,42 @@ html[data-auth="in"] .auth-screen {
   display: none;
 }
 
-/* ---------- Login layout ---------- */
+/* ---------- Colour used to fade the photo into the page ---------- */
+:root {
+  --auth-shade: rgb(11 15 20 / 92%);
+  --auth-extra: 96px; /* how much taller than the window the desktop login page is */
+}
+
+:root[data-theme="light"] {
+  --auth-shade: rgb(243 245 249 / 92%);
+}
+
+/* ---------- Login layout (phones: one column, page scrolls) ---------- */
 .auth-screen {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   min-height: 100vh;
   min-height: 100dvh;
-  grid-template-columns: minmax(0, 1fr);
   background: var(--bg);
 }
 
 .auth-panel {
-  display: grid;
-  place-items: center;
-  padding: 28px 16px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 72px 16px 32px;
 }
 
 .auth-card {
   width: 100%;
   max-width: 440px;
+  margin: auto; /* centres the card, but never cuts off the top on a short window */
+}
+
+.auth-theme {
+  position: absolute;
+  top: 16px;
+  right: 16px;
 }
 
 .auth-brand {
@@ -192,15 +211,39 @@ html[data-auth="in"] .auth-screen {
   overflow-wrap: anywhere;
 }
 
-/* ---------- Image side (desktop only) ---------- */
+/* ---------- Photo side (desktop only) ---------- */
+/* The photo fades into the page colour on its left edge, so the form and
+   the photo read as one screen in both themes. */
 .auth-hero {
   display: none;
   align-items: flex-end;
   padding: 48px;
+  /* Simple fallback for very old browsers (the smooth version below needs color-mix) */
   background:
-    linear-gradient(0deg, rgb(11 15 20 / 92%), rgb(11 15 20 / 15%) 70%),
+    linear-gradient(90deg, var(--bg) 0%, transparent 40%),
     url("gym-hero.png") center 30% / cover,
-    #171a1f;
+    var(--surface-light);
+  /* Smooth version:
+     1. a soft glow only behind the text (bottom-left), so the rest of the photo keeps its colour
+     2. an eased fade (slow start, slow finish) from the page colour into the photo */
+  background:
+    radial-gradient(ellipse 70% 55% at 15% 100%, var(--auth-shade) 0%, transparent 100%),
+    linear-gradient(
+      90deg,
+      var(--bg) 0%,
+      color-mix(in srgb, var(--bg) 97%, transparent) 8%,
+      color-mix(in srgb, var(--bg) 90%, transparent) 16%,
+      color-mix(in srgb, var(--bg) 78%, transparent) 24%,
+      color-mix(in srgb, var(--bg) 62%, transparent) 32%,
+      color-mix(in srgb, var(--bg) 45%, transparent) 40%,
+      color-mix(in srgb, var(--bg) 29%, transparent) 48%,
+      color-mix(in srgb, var(--bg) 16%, transparent) 56%,
+      color-mix(in srgb, var(--bg) 7%, transparent) 64%,
+      color-mix(in srgb, var(--bg) 2%, transparent) 72%,
+      transparent 80%
+    ),
+    url("gym-hero.png") center 30% / cover,
+    var(--surface-light);
   color: #f4f6f8;
 }
 
@@ -222,16 +265,22 @@ html[data-auth="in"] .auth-screen {
 }
 
 @media (min-width: 900px) {
+  /* A normal page that is always a little taller than the window, so the
+     mouse wheel can move it up and down. The extra space is added at the
+     bottom, so the first view looks exactly the same as before. */
   .auth-screen {
     grid-template-columns: minmax(420px, 5fr) 6fr;
+    min-height: calc(100vh + var(--auth-extra));
+    min-height: calc(100dvh + var(--auth-extra));
   }
 
   .auth-panel {
-    padding: 48px;
+    padding: 72px 48px calc(40px + var(--auth-extra));
   }
 
   .auth-hero {
     display: flex;
+    padding-bottom: calc(48px + var(--auth-extra));
   }
 }
 
@@ -297,6 +346,40 @@ html[data-role="member"] .hero-grid {
   grid-template-columns: minmax(0, 1fr);
 }
 
+/* ---------- Mobile top bar: search gets its own full-width row ---------- */
+@media (max-width: 599px) {
+  .topbar {
+    flex-wrap: wrap;
+    min-height: 0;
+    padding-block: 10px;
+    row-gap: 10px;
+  }
+
+  .topbar-actions {
+    order: 1;
+  }
+
+  .search-form {
+    order: 2;
+    flex: 1 1 100%;
+    max-width: none;
+  }
+
+  /* Welcome text stays readable on phones: the photo fades out sooner */
+  .hero-image {
+    background-image:
+      linear-gradient(90deg, #171a1f 0%, rgb(23 26 31 / 96%) 45%, rgb(23 26 31 / 55%) 100%),
+      linear-gradient(0deg, rgb(10 12 15 / 40%), transparent 70%),
+      url("gym-hero.png");
+  }
+
+  [data-theme="light"] .hero-image {
+    background-image:
+      linear-gradient(90deg, #ffffff 0%, rgb(255 255 255 / 96%) 45%, rgb(255 255 255 / 60%) 100%),
+      url("gym-hero.png");
+  }
+}
+
 /* ---------- Light theme ---------- */
 [data-theme="light"] .auth-form input:not([type="checkbox"]) {
   border-color: #c5cfdb;
@@ -307,4 +390,42 @@ html[data-role="member"] .hero-grid {
   border-color: #fca5a5;
   background: #fee2e2;
   color: #991b1b;
+}
+
+[data-theme="light"] .auth-hero {
+  color: var(--text);
+}
+
+[data-theme="light"] .auth-hero h2 span {
+  color: var(--orange);
+}
+
+[data-theme="light"] .auth-hero p {
+  color: var(--muted);
+}
+
+/* ---------- Form fields: red only after the person has touched them ---------- */
+/* style.css marks every empty required field red unless it has placeholder text,
+   so date and number fields looked invalid before anyone typed. These rules
+   undo that and use :user-invalid, which waits for real interaction. */
+.data-form input:invalid:not(:placeholder-shown) {
+  border-color: #344252;
+}
+
+[data-theme="light"] .data-form input:invalid:not(:placeholder-shown) {
+  border-color: #c5cfdb;
+}
+
+.data-form input:user-invalid,
+.data-form select:user-invalid {
+  border-color: var(--red);
+}
+
+[data-theme="light"] .data-form input:user-invalid,
+[data-theme="light"] .data-form select:user-invalid {
+  border-color: var(--red);
+}
+
+.data-form input:invalid:not(:placeholder-shown):focus {
+  border-color: var(--orange);
 }
