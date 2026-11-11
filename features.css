@@ -1,0 +1,236 @@
+/* 
+   Smart Gym — features.css
+   Styles for features.js: QR check-in, notifications panel
+   and demo-data buttons. Loads after style.css and auth.css.
+   */
+ 
+/* ---------- QR check-in panel (Attendance page) ---------- */
+.qr-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  margin-bottom: 22px;
+}
+ 
+.qr-box {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgb(0 0 0 / 10%);
+}
+ 
+.qr-box h3 {
+  margin-bottom: 4px;
+}
+ 
+.qr-box > p.muted {
+  margin-bottom: 0;
+}
+ 
+[data-theme="light"] .qr-box {
+  background: rgb(0 0 0 / 3%);
+}
+ 
+.qr-form {
+  display: flex;
+  gap: 8px;
+  margin: 14px 0 10px;
+}
+ 
+.qr-form input,
+.qr-pick select {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  padding: 10px 11px;
+  border: 1px solid #344252;
+  border-radius: 9px;
+  outline: none;
+  background: #0e151d;
+  color: var(--text);
+}
+ 
+.qr-form input {
+  flex: 1;
+  font-size: 1rem; /* stops iPhones zooming in on focus */
+  letter-spacing: 0.04em;
+}
+ 
+.qr-form input::placeholder {
+  color: #778596;
+}
+ 
+.qr-form input:focus,
+.qr-pick select:focus {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px rgb(255 132 43 / 12%);
+}
+ 
+[data-theme="light"] .qr-form input,
+[data-theme="light"] .qr-pick select {
+  border-color: #c5cfdb;
+  background: #ffffff;
+}
+ 
+.qr-video-wrap {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+ 
+.qr-video-wrap video {
+  width: 100%;
+  max-height: 260px;
+  border-radius: 10px;
+  background: #000;
+  object-fit: cover;
+}
+ 
+.qr-result {
+  min-height: 1.4em;
+  margin-top: 10px;
+}
+ 
+.qr-result.is-ok {
+  color: var(--green);
+}
+ 
+.qr-result.is-error {
+  color: var(--red);
+}
+ 
+.qr-pick {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+  color: var(--text);
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+ 
+/* The code is always black on white so any scanner can read it, in both themes */
+.qr-image {
+  width: min(210px, 100%);
+  margin: 14px auto 10px;
+  padding: 6px;
+  border-radius: 12px;
+  background: #ffffff;
+}
+ 
+.qr-image svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+ 
+.qr-name {
+  margin: 0;
+  color: var(--text);
+  font-weight: 700;
+  text-align: center;
+}
+ 
+.qr-code-text {
+  margin: 4px 0 14px;
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+ 
+@media (min-width: 760px) {
+  .qr-panel {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  }
+ 
+  /* Members only see their own card, so it does not need to be stretched */
+  .qr-panel.is-single {
+    grid-template-columns: minmax(0, 420px);
+  }
+}
+ 
+/* ---------- Notifications panel (the bell) ---------- */
+.notif-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 700;
+  width: min(340px, calc(100vw - 32px));
+  max-height: min(70vh, 480px);
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+ 
+.notif-head {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+ 
+.notif-list {
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+}
+ 
+.notif-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 48px;
+  padding: 10px;
+  border-radius: 8px;
+}
+ 
+.notif-item:hover {
+  background: var(--surface-hover);
+}
+ 
+.notif-item strong,
+.notif-item small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+ 
+.notif-item strong {
+  font-size: 0.85rem;
+}
+ 
+.notif-item small {
+  font-size: 0.75rem;
+}
+ 
+.notif-bullet {
+  width: 9px;
+  height: 9px;
+  flex: 0 0 auto;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: var(--blue);
+}
+ 
+.notif-warn .notif-bullet {
+  background: var(--yellow);
+}
+ 
+.notif-danger .notif-bullet {
+  background: var(--red);
+}
+ 
+.notif-empty {
+  margin: 0;
+  padding: 22px 16px;
+  color: var(--muted);
+  text-align: center;
+}
