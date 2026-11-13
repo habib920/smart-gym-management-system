@@ -102,15 +102,8 @@ smart-gym-management-system/
 └── README.md
 ```
 
-## 5. Installation and Setup
 
-1. Clone or download the project repository.
-2. Open the project folder in Visual Studio Code.
-3. Make sure all project files and assets are in the correct locations.
-4. Open `index.html` in your browser.
-5. For the best experience, use the VS Code Live Server extension.
-
-## 6. Demo Accounts
+## 5. Demo Accounts
 
 The application provides demonstration accounts for different user roles.
 
@@ -121,7 +114,7 @@ The application provides demonstration accounts for different user roles.
 | Trainer | trainer@smartgym.com | Trainer123 |
 | Member | member@smartgym.com | Member123 |
 
-## 7. Account Roles
+## 6. Account Roles
 
 The application supports four roles:
 
@@ -132,14 +125,14 @@ The application supports four roles:
 
 The signed-in user's role is displayed in Settings as read-only.
 
-## 8. Data Management
+## 7. Data Management
 
 - Application records are stored in the browser's Local Storage.
 - Sign-in sessions use browser storage.
 - Data remains available in the same browser unless it is cleared or reset.
 - The Gym Manager can reset application data through Settings.
 
-## 9. QR Code Functionality
+## 8. QR Code Functionality
 
 The application supports QR-code generation for member identification and attendance.
 
@@ -147,13 +140,13 @@ Members can use their QR codes for check-in. Camera scanning depends on browser 
 
 For camera access, run the application through HTTPS or localhost.
 
-## 10. Responsive Design
+## 9. Responsive Design
 
 The application uses responsive layouts to support desktop, tablet, and mobile screens.
 
 CSS Grid and Flexbox are used to organize dashboard sections and interface components.
 
-## 11. Project Status
+## 10. Project Status
 
 The Smart Gym Management System frontend application includes the main gym management features, role-based interfaces, attendance workflows, and reporting functionality.
 
